@@ -63,6 +63,23 @@ it the same way.
 Run `npm run check:paths` after building; it fails the build on any root-absolute URL. Note
 it must match unquoted attributes too, since `--minify` strips attribute quotes.
 
+### Search
+
+`params.search.flexsearch.tokenize = "full"` (not Hextra's `forward` default) so a search for
+`srate` matches `roll_srate`. Forward tokenization only matches word *prefixes*, which is
+wrong for a site whose main lookup target is CLI variable names.
+
+Two output files are easy to confuse when debugging search:
+
+- `public/js/flexsearch.<hash>.js` — the **vendored FlexSearch library**, fetched from
+  jsDelivr at build time and copied local. Its hash never changes with your config; don't
+  look here for your settings. Note the build needs network access to jsDelivr.
+- `public/en.search.min.<hash>.js` — **your templated search code**, from
+  `themes/hextra/assets/js/flexsearch.js` via `ExecuteAsTemplate`. Config values land here
+  (`grep -o '"full"\|"forward"'` to confirm).
+
+Hugo caches processed assets; `rm -rf resources/` if a config change seems not to apply.
+
 ## Blackbox log policy
 
 Raw `.bbl`, decoded `.csv` and `.event` files are **gitignored**. Log pages carry the

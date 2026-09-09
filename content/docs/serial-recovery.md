@@ -22,7 +22,7 @@ stateDiagram-v2
     Stuck --> Normal: USB replug
     Normal --> MassStorage: msc
     MassStorage --> Normal: USB replug
-    Normal --> Normal: save (writes EEPROM, reboots)
+    Normal --> Normal: save → reboot
 
     note right of Stuck
         MSP times out here.

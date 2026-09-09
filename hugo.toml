@@ -81,7 +81,10 @@ enableGitInfo = true
     type = "flexsearch"
     [params.search.flexsearch]
       index = "content"
-      tokenize = "forward"
+      # "full" indexes every substring, not just word prefixes. Needed so a search for
+      # "srate" finds "roll_srate" — CLI variable names are the main thing looked up here.
+      # Costs a larger index; negligible at this page count.
+      tokenize = "full"
 
   [params.editURL]
     enable = true
