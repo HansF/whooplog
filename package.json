@@ -1,0 +1,27 @@
+{
+  "name": "whooplog",
+  "version": "1.0.0",
+  "description": "Working reference for a 1S FPV tinywhoop: build spec, rates, blackbox workflow, flight log.",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "hugo server -D",
+    "build": "hugo --gc --minify --cleanDestinationDir --printPathWarnings",
+    "build:ci": "hugo --gc --minify --cleanDestinationDir --printPathWarnings",
+    "lint": "markdownlint \"content/**/*.md\"",
+    "format": "prettier --write \"**/*.{js,json,md,html,css,yaml,yml,toml}\"",
+    "check:paths": "grep -ro 'href=\"/[a-z]' public --include=*.html | grep -v '/whooplog/' || echo 'OK: no root-absolute hrefs'"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "^0.45.0",
+    "prettier": "^3.6.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HansF/whooplog.git"
+  },
+  "license": "CC-BY-4.0",
+  "engines": {
+    "node": ">=22 <23"
+  }
+}

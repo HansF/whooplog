@@ -1,0 +1,22 @@
+# Hugo
+/public/
+/resources/
+.hugo_build.lock
+
+# Dependencies
+node_modules/
+
+# Tooling
+.mcp.json
+.claude/settings.local.json
+
+# Blackbox logs — raw and derived. Findings live in content/log/, data stays local.
+# See CLAUDE.md for the policy and the threshold at which to revisit it.
+content/**/*.bbl
+content/**/*.csv
+content/**/*.event
+content/**/*.gpx
+
+# OS / editor
+.DS_Store
+*.swp

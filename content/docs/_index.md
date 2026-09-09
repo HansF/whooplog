@@ -1,0 +1,20 @@
+---
+title: Process Docs
+description: Repeatable procedures for working with the flight controller.
+weight: 4
+toc: false
+---
+
+Procedures that worked, written down with the failure modes that cost time the first time
+around. Each one assumes a Linux host and a Betaflight board on USB.
+
+{{< cards >}}
+  {{< card link="extract-blackbox-logs/" title="Extracting Blackbox Logs" icon="download"
+      subtitle="USB mass-storage mode, mounting, and which files to take." >}}
+  {{< card link="decode-and-analyze-blackbox/" title="Decoding a Blackbox Log" icon="chart-bar"
+      subtitle="blackbox_decode, and what the decimation warning really means." >}}
+  {{< card link="serial-recovery/" title="Recovering a Stuck Serial Link" icon="refresh"
+      subtitle="Stuck CLI mode, moving device paths, and ports held by other processes." >}}
+  {{< card link="betaflight-mcp-claude-code/" title="Betaflight from Claude Code" icon="terminal"
+      subtitle="MCP setup, read whitelisting, and the alpha-firmware MSP incompatibility." >}}
+{{< /cards >}}
