@@ -41,6 +41,28 @@ without it code blocks ignore the light/dark toggle.
 Layouts map automatically by section: `/blog` gets the theme's blog layout, `/log` and
 `/reference` fall through to the docs-style list layout with a sidebar. No `cascade` needed.
 
+### Local theme override — `layouts/_partials/shortcodes/card.html`
+
+Hextra v0.12.1 has a subpath bug in its `card` shortcode. It computes the href as
+`($link | relURL)`, but **`relURL` does not prepend the baseURL path when its input already
+starts with `/`** — it returns the string unchanged:
+
+```text
+"/reference/" | relURL                            → /reference/      ✗
+relURL (strings.TrimPrefix "/" "/reference/")     → /whooplog/reference/  ✓
+```
+
+So `{{< card link="/reference/" >}}` emitted a link that 404s in production. The theme's own
+`layouts/_markup/render-link.html` gets this right, which is why plain markdown links are
+fine. We override just that one line. Re-check the override on every Hextra upgrade.
+
+`layouts/_shortcodes/hextra/hero-button.html` has the **identical bug** upstream and is not
+currently overridden — if you start using `hero-button` with a `/`-prefixed link, override
+it the same way.
+
+Run `npm run check:paths` after building; it fails the build on any root-absolute URL. Note
+it must match unquoted attributes too, since `--minify` strips attribute quotes.
+
 ## Blackbox log policy
 
 Raw `.bbl`, decoded `.csv` and `.event` files are **gitignored**. Log pages carry the

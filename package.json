@@ -10,7 +10,7 @@
     "build:ci": "hugo --gc --minify --cleanDestinationDir --printPathWarnings",
     "lint": "markdownlint \"content/**/*.md\"",
     "format": "prettier --write \"**/*.{js,json,md,html,css,yaml,yml,toml}\"",
-    "check:paths": "grep -ro 'href=\"/[a-z]' public --include=*.html | grep -v '/whooplog/' || echo 'OK: no root-absolute hrefs'"
+    "check:paths": "! grep -rEo '(href|src)=(\"|'\\'')?/[a-z][^ >\"'\\'']*' public --include='*.html' | grep -vE '/whooplog/' || (echo 'FAIL: root-absolute URLs above will 404 on the subpath' && exit 1)"
   },
   "devDependencies": {
     "markdownlint-cli": "^0.45.0",

@@ -32,9 +32,9 @@ stateDiagram-v2
 
 ## The three failure modes
 
-{{< tabs items="Stuck in CLI,Device path moved,Port held by another process" >}}
+{{< tabs >}}
 
-{{< tab >}}
+{{< tab name="Stuck in CLI" icon="exclamation-circle" >}}
 **Symptom.** MSP requests time out, and any attempt to run a CLI command fails with:
 
 ```text
@@ -59,7 +59,7 @@ does **not** help — the state lives in the firmware, not the connection.
 **Prevention.** End every CLI interaction with `exit` (or `save`, which reboots).
 {{< /tab >}}
 
-{{< tab >}}
+{{< tab name="Device path moved" icon="switch-horizontal" >}}
 **Symptom.**
 
 ```text
@@ -80,7 +80,7 @@ The Betaflight device identifies itself, so a tool that enumerates properly will
 such along with its serial number.
 {{< /tab >}}
 
-{{< tab >}}
+{{< tab name="Port held by another process" icon="lock-closed" >}}
 **Symptom.**
 
 ```text
