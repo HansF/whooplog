@@ -19,4 +19,6 @@ around. Each one assumes a Linux host and a Betaflight board on USB.
       subtitle="MCP setup, read whitelisting, and where MSP over USB falls down." >}}
   {{< card link="tx-lua-scripts/" title="Lua Scripts on the Transmitter" icon="device-mobile"
       subtitle="Field tuning from the radio — and which of the two tools uses the wheel." >}}
+  {{< card link="elrs-finder/" title="ELRS Lost-Model Finder" icon="search"
+      subtitle="RSSI hunting on a mono radio, and the LVGL trap that blanks most finders." >}}
 {{< /cards >}}
