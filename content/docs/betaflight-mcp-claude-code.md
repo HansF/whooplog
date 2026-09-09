@@ -62,10 +62,19 @@ CLI or mass-storage mode — see [Recovering a Stuck Serial Link](/docs/serial-r
 
 {{% /steps %}}
 
-## The alpha-firmware incompatibility
+## MSP reads time out over USB
 
-On Betaflight **2026.6.0-alpha** (MSP API 1.48), nearly every MSP binary read times out,
-while the CLI text interface works perfectly.
+On Betaflight **2026.6.0-alpha** (MSP API 1.48), nearly every MSP binary read times out
+through this server, while the CLI text interface works perfectly.
+
+{{< callout type="info" >}}
+**Corrected.** This page previously described the timeouts as a firmware-level MSP failure.
+That was wrong. The Betaflight TX Lua scripts talk to the same flight controller using MSP
+tunnelled over CRSF telemetry, and the [CMS menu renders correctly](/docs/tx-lua-scripts/) —
+which it cannot do without working MSP request/response. **The firmware's MSP implementation
+is fine.** The fault is confined to the USB path, and most likely to this server's MSP
+handling rather than the board.
+{{< /callout >}}
 
 | Call | MSP code | Result |
 | --- | --- | --- |
@@ -77,20 +86,24 @@ while the CLI text interface works perfectly.
 | Dataflash summary | 72 | times out |
 | `MSP_STATUS_EX` | 150 | times out |
 
-The failure is consistent and survives reconnection, replugging and a fresh boot, so it is a
-firmware/protocol mismatch rather than a connection fault. Identity-type calls answering
-while data calls do not suggests the server and this firmware disagree about payload format
-for the affected messages.
+The failure is consistent and survives reconnection, replugging and a fresh boot, so it is not
+a transient connection fault. Identity-type calls answering while data calls do not suggests
+the server and the firmware disagree about payload format for the affected messages.
 
 {{< callout type="warning" >}}
-**Operational rule for this build: treat CLI text as the reliable transport and MSP binary
-reads as unavailable.** Anything the MCP server exposes as a `get_*` MSP tool should be read
-with `cli_exec "get <name>"` instead. Board status comes from `status`, not `get_status`;
-flash usage from `flash_info`, not `get_dataflash_summary`; log erasure from `flash_erase`,
-not `erase_blackbox_logs`.
+**Operational rule when using this server: treat CLI text as the reliable transport.**
+Anything exposed as a `get_*` MSP tool should be read with `cli_exec "get <name>"` instead.
+Board status comes from `status`, not `get_status`; flash usage from `flash_info`, not
+`get_dataflash_summary`; log erasure from `flash_erase`, not `erase_blackbox_logs`.
 {{< /callout >}}
 
-Worth re-testing once the firmware leaves alpha.
+### Still untested
+
+Raw MSP over USB from a hand-written client has **not** been tried — the one attempt failed
+before it opened the port, because the board had re-enumerated on a different `ttyACM` node.
+Until that test runs, the boundary is: MSP over CRSF works, MSP over USB *via this server*
+does not. Whether a correct USB MSP client would succeed is unknown, and it is the experiment
+that would isolate the server from the transport.
 
 ## Consequences for CLI-first working
 

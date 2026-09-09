@@ -80,6 +80,35 @@ The Betaflight device identifies itself, so a tool that enumerates properly will
 such along with its serial number.
 {{< /tab >}}
 
+{{< tab name="Silence — wrong CLI entry" icon="code" >}}
+**Symptom.** The port opens without error, nothing holds it, the board is enumerated and
+healthy — and **zero bytes** come back. No prompt, no echo, no error.
+
+**Cause.** The CLI is entered with a **bare `#` and no line ending**. Sending `#\r\n` or
+`#\n` is parsed as an empty command and never opens the CLI, so the board simply stays silent.
+
+This is the most misleading failure of the four, because it is indistinguishable from a dead
+board: the port is fine, `fuser` is clear, the USB ID is right, and nothing is stuck. Probing
+it directly makes the difference obvious:
+
+```text
+bare #      ->  59 bytes  "\r\nEntering CLI Mode, type 'exit' to reboot, or 'help'\r\n\r\n# "
+# + LF      ->   7 bytes  "#\r\n\r\n# "
+newline     ->   0 bytes
+```
+
+**Fix.** Write `b"#"` with no terminator. Everything *after* that is line-based and needs
+`\r\n` as normal.
+
+```python
+ser.write(b"#")          # enter CLI — no line ending
+ser.write(b"status\r\n") # subsequent commands are normal lines
+```
+
+**Then always leave.** `exit` reboots the board; `exit noreboot` drops out of CLI and keeps
+MSP available without a restart — useful when the next thing you want is a binary request.
+{{< /tab >}}
+
 {{< tab name="Port held by another process" icon="lock-closed" >}}
 **Symptom.**
 
@@ -116,7 +145,17 @@ Close that tab or process and reconnect. `fuser` returning nothing means the por
 | `CLI prompt not received … Buffer: "#"` | Stuck in CLI | Replug USB |
 | `No such file or directory` | Path moved | Re-enumerate `/dev/ttyACM*` |
 | `Device or resource busy` | Port held | `fuser`, close the holder |
-| MSP times out but CLI works fine | Not a fault | See [alpha firmware MSP](/docs/betaflight-mcp-claude-code/) |
+| **Zero bytes, no error at all** | Wrong CLI entry | Send a bare `#`, no line ending |
+| USB ID is `0483:df11` | Board is in DFU | Replug without holding boot |
+| MSP times out but CLI works fine | Not a fault | See [MSP over USB](/docs/betaflight-mcp-claude-code/) |
+
+{{< callout type="info" >}}
+Check the USB ID before diagnosing anything else — it settles several of these at once.
+`0483:5740` is the normal virtual COM port, `0483:5720` is mass storage, and `0483:df11` is
+the DFU bootloader. Note that **EdgeTX radios use the same STM32 IDs**, so a handset plugged
+in alongside the quad is easy to mistake for the flight controller. Match on the serial
+number, not the vendor ID.
+{{< /callout >}}
 
 That last row matters: on this build most MSP reads time out permanently by firmware
 version, not by connection state, and no amount of replugging changes it.

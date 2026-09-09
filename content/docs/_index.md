@@ -16,5 +16,7 @@ around. Each one assumes a Linux host and a Betaflight board on USB.
   {{< card link="serial-recovery/" title="Recovering a Stuck Serial Link" icon="refresh"
       subtitle="Stuck CLI mode, moving device paths, and ports held by other processes." >}}
   {{< card link="betaflight-mcp-claude-code/" title="Betaflight from Claude Code" icon="terminal"
-      subtitle="MCP setup, read whitelisting, and the alpha-firmware MSP incompatibility." >}}
+      subtitle="MCP setup, read whitelisting, and where MSP over USB falls down." >}}
+  {{< card link="tx-lua-scripts/" title="Lua Scripts on the Transmitter" icon="device-mobile"
+      subtitle="Field tuning from the radio — and which of the two tools uses the wheel." >}}
 {{< /cards >}}
