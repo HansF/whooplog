@@ -21,6 +21,10 @@ cell count. Copying them onto a different build will not do what you expect.
       subtitle="Centre sensitivity, max rate and expo per axis — with the CLI variables." >}}
   {{< card link="throttle-curve/" title="Throttle Curve and Idle" icon="trending-up"
       subtitle="Limit, midpoint, expo and motor idle." >}}
+  {{< card link="osd-layout/" title="OSD Layout" icon="desktop-computer"
+      subtitle="Minimal element set, and why the low-voltage warning was being ignored." >}}
+  {{< card link="aux-modes/" title="Aux Modes and Switches" icon="switch-horizontal"
+      subtitle="The switch map, and how to resolve a boxId correctly." >}}
   {{< card link="cli-variables/" title="CLI Variables" icon="terminal"
       subtitle="Paste-to-reproduce set lines for this build." >}}
 {{< /cards >}}

@@ -11,13 +11,18 @@ toc: true
 | Setting | Value | Effect |
 | --- | --- | --- |
 | `throttle_limit_type` | `SCALE` | Scales the whole output range rather than clipping the top. |
-| `throttle_limit_percent` | `90` | Caps usable throttle at 90%, trading unused top-end for headroom and a longer pack. |
-| `thr_mid` | `45` | Puts the curve's midpoint slightly below centre stick. |
+| `throttle_limit_percent` | `80` | Caps usable throttle at 80%, trading unused top-end for headroom and a longer pack. |
+| `thr_mid` | `40` | Puts the curve's midpoint below centre stick. |
 | `thr_expo` | `35` | Softens response around the midpoint, where hovering happens. |
 | `motor_idle` | `400` | 4.00% idle — enough to keep motors turning without creeping. |
+| `thr_hover` | `44` | Hover reference point used by altitude-related features. |
 
-Net effect: throttle is capped at 90% and softened around the middle, which makes hover
-trim less twitchy on a craft with a lot of thrust relative to its mass.
+Net effect: throttle is capped at 80% and softened around the 40% midpoint, which makes
+altitude control precise on a craft with a lot of thrust relative to its mass.
+
+Both the cap and the midpoint were lowered from an earlier setting (90% and 45): the craft
+had more top-end than was useful indoors, and moving the midpoint down puts the softened
+part of the curve where hover actually sits.
 
 ## SCALE versus CLIP
 

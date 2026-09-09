@@ -12,12 +12,21 @@ Rate system is `rates_type = ACTUAL`, on rate profile 0.
 
 | Axis | Centre (°/s) | Max (°/s) | Expo | `*_rc_rate` | `*_srate` | `*_expo` |
 | --- | --- | --- | --- | --- | --- | --- |
-| Roll | 170 | 550 | 0.53 | `roll_rc_rate = 17` | `roll_srate = 55` | `roll_expo = 53` |
-| Pitch | 170 | 550 | 0.40 | `pitch_rc_rate = 17` | `pitch_srate = 55` | `pitch_expo = 40` |
-| Yaw | 120 | 400 | 0.30 | `yaw_rc_rate = 12` | `yaw_srate = 40` | `yaw_expo = 30` |
+| Roll | 170 | 550 | 0.35 | `roll_rc_rate = 17` | `roll_srate = 55` | `roll_expo = 35` |
+| Pitch | 170 | 550 | 0.35 | `pitch_rc_rate = 17` | `pitch_srate = 55` | `pitch_expo = 35` |
+| Yaw | 120 | 400 | 0.25 | `yaw_rc_rate = 12` | `yaw_srate = 40` | `yaw_expo = 25` |
 
-Roll and pitch are moderately quick with substantial centre smoothing — more on roll (0.53)
-than pitch (0.40). Yaw is deliberately slower and more linear for controlled turns.
+Roll and pitch are matched — same centre sensitivity, same max rate, same expo — giving
+smooth, controlled response without one axis feeling softer than the other. Yaw is
+deliberately slower and more linear for controlled turns.
+
+### Previous values
+
+The first version of this profile ran noticeably more expo: roll 0.53, pitch 0.40, yaw 0.30.
+That proved too aggressive in the air — the heavy centre smoothing on roll made small
+corrections feel vague, and the roll/pitch mismatch (0.53 vs 0.40) meant the two axes did not
+respond alike to the same stick movement. Reducing expo and matching roll to pitch fixed
+both. Rates and max rates were never the problem and are unchanged.
 
 ## The quantization trap
 
