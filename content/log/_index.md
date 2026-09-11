@@ -10,6 +10,7 @@ decoded log showed, and anything left open.
 
 | Date | Flight | Craft | Duration | Verdict |
 | --- | --- | --- | --- | --- |
+| 2026-09-09 | [007–031 — Twenty-Five Flight Batch](2026-09-09-twenty-five-flight-batch/) | G473 V2 1S | ~7 min total | Airframe fine; battery run down repeatedly; flash filled |
 | 2026-09-08 | [006 — Post-Rebuild Shakedown](2026-09-08-post-rebuild-shakedown/) | G473 V2 1S | 30.6 s | Rebuild sound; two open issues |
 
 {{< callout type="info" >}}
