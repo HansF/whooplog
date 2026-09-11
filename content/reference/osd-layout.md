@@ -11,23 +11,104 @@ mode always visible. Everything not serving one of those was switched off.
 
 ## What's on screen
 
-| Element | Position | Why |
-| --- | --- | --- |
-| Blackbox log status | row 1, col 1 | Log number, live — correlates DVR footage to a `.bbl` file |
-| Link quality | row 10, col 1 | The only warning you get before a failsafe |
-| Warnings | row 10, col 9 | Where the battery alert appears |
-| Battery voltage | row 12, col 1 | On 1S this *is* cell voltage |
-| Flight timer | row 12, col 23 | The real fuel gauge — see below |
-| Flight mode | row 11, col 25 | Required |
+Three profiles, selected by the AUX3 3-position switch:
 
-Switched off: crosshairs, artificial horizon, AH sidebars, VTX channel, VTX temperature, and
-the arming logo (`osd_logo_on_arming = OFF`).
+| Element | Position | P1 Full | P2 Minimal | P3 Clean | Why |
+| --- | --- | :-: | :-: | :-: | --- |
+| Warnings | row 10, col 9 | ● | ● | ● | Where the battery alert appears |
+| Battery voltage | row 12, col 1 | ● | ● | | On 1S this *is* cell voltage |
+| Flight mode | row 11, col 25 | ● | ● | | Required |
+| Blackbox log status | row 1, col 1 | ● | | | Log number, live — correlates DVR footage to a `.bbl` |
+| Link quality | row 10, col 1 | ● | | | The only warning you get before a failsafe |
+| Flight timer | row 12, col 23 | ● | | | The real fuel gauge — see below |
+
+Switched off in every profile: crosshairs, artificial horizon, AH sidebars, VTX channel, VTX
+temperature, current draw, and the arming logo (`osd_logo_on_arming = OFF`).
+
+{{< callout type="warning" >}}
+**Warnings stay visible even in the "clean" profile.** A genuinely blank screen means no
+low-voltage alert, and this craft has a [history of deep
+discharge](/log/2026-09-08-post-rebuild-shakedown/). Clean video is not worth losing the one
+indicator that protects the pack.
+{{< /callout >}}
+
+## Position encoding
+
+```text
+pos = (row << 5) | col        bits 0-10
+bit 11 (2048)  visible in profile 1
+bit 12 (4096)  visible in profile 2
+bit 13 (8192)  visible in profile 3
+```
+
+An element appears in every profile whose bit is set, so the values above are a base position
+plus the sum of its profile bits:
+
+| Element | Base | Profile bits | Value |
+| --- | --- | --- | --- |
+| `osd_warnings_pos` | 329 | 2048+4096+8192 | **14665** |
+| `osd_vbat_pos` | 385 | 2048+4096 | **6529** |
+| `osd_flymode_pos` | 377 | 2048+4096 | **6521** |
+| `osd_log_status_pos` | 33 | 2048 | **2081** |
+| `osd_link_quality_pos` | 321 | 2048 | **2369** |
+| `osd_tim_2_pos` | 407 | 2048 | **2455** |
+| `osd_current_pos` | 384 | none | **384** (hidden) |
 
 {{< callout type="info" >}}
-Elements were hidden by clearing only the visibility bit and **keeping their coordinates**.
-Re-enabling any of them is a single `set` that adds 2048 back — nothing was lost. Position
-encoding is `pos = (row << 5) | col`, with bit 11 (2048) marking visible in OSD profile 1.
+Hiding an element means clearing its profile bits and **keeping the coordinates**, so
+restoring it is a single `set` that adds the bits back. Nothing is lost. Note that an element
+with only bit 13 set is visible in profile 3 *only* — `osd_current_pos` was `8576` before this
+change, which would have put the [broken current sensor's](/log/2026-09-08-post-rebuild-shakedown/)
+readings on the clean-video profile specifically.
 {{< /callout >}}
+
+## Switching profiles from a switch
+
+There is **no RC mode box for OSD profiles** — `msp_box.c` has only `OSD DISABLE`
+(permanentId 19). Profile selection is an *adjustment*, not a mode:
+
+```bash
+adjrange 0 0 2 900 2100 28 2 0 0
+```
+
+Fields are `<index> <unused> <range channel> <start> <end> <function> <select channel> <center> <scale>`.
+Range channel and select channel are both AUX3 (index 2); the 900–2100 range means the
+adjustment is always enabled, and AUX3's own position selects the value.
+
+`ADJUSTMENT_OSD_PROFILE` is `ADJUSTMENT_MODE_SELECT` with `switchPositions = 3`, and
+`rc_adjustments.c` divides the channel evenly:
+
+```c
+const uint16_t rangeWidth = (2100 - 900) / switchPositions;          // 400
+const uint8_t position = (constrain(rcData[ch], 900, 2099) - 900) / rangeWidth;
+```
+
+| AUX3 | PWM | position | Profile |
+| --- | --- | --- | --- |
+| Low | 900–1299 | 0 | 1 |
+| Mid | 1300–1699 | 1 | 2 |
+| High | 1700–2099 | 2 | 3 |
+
+which lines up with a standard 3-way switch's ~1000/1500/2000 output.
+
+{{< callout type="error" >}}
+**Resolve the adjustment function number from the firmware, not from memory.**
+`ADJUSTMENT_OSD_PROFILE` is **28**; 29 is `LED_PROFILE` and 30 is `LED_DIMMER`. Writing the
+wrong number binds the switch to a different adjustment entirely, with no error — the same
+class of trap as [aux `boxId` values](/reference/aux-modes/). Count the enum:
+
+```bash
+awk '/ADJUSTMENT_NONE = 0,/{f=1} f&&/ADJUSTMENT_[A-Z0-9_]+,/{gsub(/[ ,]/,"");print n": "$0; n++} \
+  /ADJUSTMENT_FUNCTION_COUNT/{exit}' src/main/fc/rc_adjustments.h
+```
+{{< /callout >}}
+
+Profile support must be compiled in — check with `get osd_profile`, which should report a
+range of 1–3. A build without `USE_OSD_PROFILES` has only one profile.
+
+`OSD DISABLE` was removed from AUX3 (`aux 4 0 0 900 900 0 0`) because it sat on the middle
+position and would have blanked the screen while also selecting profile 2. Profile 3 serves
+that purpose better, since it keeps warnings.
 
 ## Why the low-voltage warning was being ignored
 

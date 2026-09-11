@@ -14,9 +14,19 @@ toc: true
 | 1 | ANGLE | AUX2 | 900–1300 | Low position of a 3-way switch |
 | 2 | HORIZON | AUX2 | 1300–1700 | Mid position — high position is acro |
 | 3 | BEEPER | AUX1 | 1700–2100 | |
-| 4 | OSD DISABLE | AUX3 | 1300–1700 | |
+| 4 | *(cleared)* | — | — | Was OSD DISABLE; removed, see below |
 | 5 | FLIP OVER AFTER CRASH | AUX5 | 1700–2100 | Turtle mode |
 | 6 | BLACKBOX | AUX1 | 900–2100 | Full span — always active, see below |
+
+Plus one **adjustment** range, which is a separate system from modes:
+
+| Slot | Function | Channel | Range | Notes |
+| --- | --- | --- | --- | --- |
+| 0 | `ADJUSTMENT_OSD_PROFILE` (28) | AUX3 | 900–2100 | 3-way switch selects [OSD profile](/reference/osd-layout/#switching-profiles-from-a-switch) 1/2/3 |
+
+AUX3 previously carried `OSD DISABLE` on its middle position. That was cleared with
+`aux 4 0 0 900 900 0 0` — a zero-width range is how Betaflight represents an empty slot —
+because it would have blanked the screen at the same time as selecting profile 2.
 
 AUX2 carries a single 3-position switch: angle at the bottom, horizon in the middle, acro at
 the top (acro needs no mode — it is what you get when neither is active).
@@ -57,6 +67,32 @@ grep -oE '\{ *\.boxId *= *BOX[A-Z0-9_]+, *\.boxName *= *"[^"]*", *\.permanentId 
 
 Match on `permanentId`, always, against the firmware version actually running — forks and
 releases can add modes.
+
+{{< callout type="error" >}}
+**`adjrange` has the same trap with a different table.** Its function field is an index into
+the `adjustmentFunction_e` enum in `src/main/fc/rc_adjustments.h`, unrelated to box IDs.
+`ADJUSTMENT_OSD_PROFILE` is **28**, while 29 is `LED_PROFILE` and 30 is `LED_DIMMER` — an
+off-by-one binds your switch to something else entirely and reports no error. Count the enum
+rather than estimating:
+
+```bash
+awk '/ADJUSTMENT_NONE = 0,/{f=1} f&&/ADJUSTMENT_[A-Z0-9_]+,/{gsub(/[ ,]/,"");print n": "$0; n++} \
+  /ADJUSTMENT_FUNCTION_COUNT/{exit}' src/main/fc/rc_adjustments.h
+```
+{{< /callout >}}
+
+### Modes versus adjustments
+
+Two different systems, easy to conflate:
+
+- **Modes** (`aux`) turn a boolean on or off — armed, angle, beeper. Identified by
+  `permanentId` from `msp_box.c`.
+- **Adjustments** (`adjrange`) change a *value* — a PID gain, a profile index. Identified by
+  enum index from `rc_adjustments.h`. `ADJUSTMENT_MODE_SELECT` functions map switch positions
+  onto discrete values; `ADJUSTMENT_MODE_STEP` ones increment.
+
+If something you want isn't in the mode list, check the adjustment list before concluding it
+can't be done from a switch. OSD profile switching exists only as an adjustment.
 
 ## Why `small_angle = 180` is correct here
 

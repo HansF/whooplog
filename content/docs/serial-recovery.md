@@ -107,6 +107,17 @@ ser.write(b"status\r\n") # subsequent commands are normal lines
 
 **Then always leave.** `exit` reboots the board; `exit noreboot` drops out of CLI and keeps
 MSP available without a restart — useful when the next thing you want is a binary request.
+
+A driver handling all of this lives at `betamcp/tools/bf_cli.py`:
+
+```bash
+python3 tools/bf_cli.py "status" "get osd_profile"
+python3 tools/bf_cli.py --save "set osd_vbat_pos = 6529"
+```
+
+It finds the board by **USB serial number** rather than device path, so it ignores the EdgeTX
+radio (which shares vendor and product IDs) and survives the `ttyACM0`/`ttyACM1`/`ttyACM2`
+shuffle after every reboot. It always exits the CLI on the way out.
 {{< /tab >}}
 
 {{< tab name="Port held by another process" icon="lock-closed" >}}
