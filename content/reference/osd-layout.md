@@ -145,12 +145,32 @@ A warning that is always on is not a warning. It is scenery.
 
 ```bash
 set vbat_duration_for_warning = 20   # 2.0 s, units are 0.1 s
-set vbat_duration_for_critical = 20
+set vbat_duration_for_critical = 5   # 0.5 s — see below
 ```
 
 Now the alert only appears when the pack is genuinely depleted, not when you are on the
 throttle. The thresholds themselves (3.50 V warn, 3.30 V critical) were always sane — the
 timing was the broken part.
+
+### Warning and critical need different durations
+
+Both were initially set to 2.0 s. That filtered sag out of the *critical* alarm too, and
+[the packs later degraded](/log/2026-09-11-new-tune-batch/) to the point where sag itself
+became the danger — momentary dives to 2.43 V, lasting under two seconds, silently ignored by
+an alarm doing exactly what it was told.
+
+The two thresholds answer different questions and deserve different timing:
+
+| Alarm | Duration | Question it answers |
+| --- | --- | --- |
+| Warning | 2.0 s | "Is this pack depleting?" — slow; transient sag is noise |
+| Critical | 0.5 s | "Is this dangerous right now?" — fast; transient sag *is* the signal |
+
+{{< callout type="warning" >}}
+A duration filter is a claim that brief excursions do not matter. That claim can expire. Here
+it was true when written and false three days later, because the hardware changed underneath
+it — and nothing about the alarm's behaviour indicated the difference.
+{{< /callout >}}
 
 {{< callout type="warning" >}}
 `vbat_sag_compensation` is deliberately left at **0**. It keeps throttle authority constant
