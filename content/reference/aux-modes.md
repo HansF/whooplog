@@ -22,7 +22,7 @@ Plus one **adjustment** range, which is a separate system from modes:
 
 | Slot | Function | Channel | Range | Notes |
 | --- | --- | --- | --- | --- |
-| 0 | `ADJUSTMENT_OSD_PROFILE` (28) | AUX3 | 900–2100 | 3-way switch selects [OSD profile](/reference/osd-layout/#switching-profiles-from-a-switch) 1/2/3 |
+| 0 | `ADJUSTMENT_OSD_PROFILE` (CLI value **29**) | AUX3 | 900–2100 | 3-way switch selects [OSD profile](/reference/osd-layout/#switching-profiles-from-a-switch) 1/2/3 |
 
 AUX3 previously carried `OSD DISABLE` on its middle position. That was cleared with
 `aux 4 0 0 900 900 0 0` — a zero-width range is how Betaflight represents an empty slot —
@@ -69,16 +69,20 @@ Match on `permanentId`, always, against the firmware version actually running �
 releases can add modes.
 
 {{< callout type="error" >}}
-**`adjrange` has the same trap with a different table.** Its function field is an index into
-the `adjustmentFunction_e` enum in `src/main/fc/rc_adjustments.h`, unrelated to box IDs.
-`ADJUSTMENT_OSD_PROFILE` is **28**, while 29 is `LED_PROFILE` and 30 is `LED_DIMMER` — an
-off-by-one binds your switch to something else entirely and reports no error. Count the enum
-rather than estimating:
+**`adjrange` has the same trap, one layer deeper.** Its function field is *not* the
+`adjustmentFunction_e` enum value, and it is not a box ID either. It indexes
+`defaultAdjustmentConfigs[]` in `rc_adjustments.c`, **offset by one**:
 
-```bash
-awk '/ADJUSTMENT_NONE = 0,/{f=1} f&&/ADJUSTMENT_[A-Z0-9_]+,/{gsub(/[ ,]/,"");print n": "$0; n++} \
-  /ADJUSTMENT_FUNCTION_COUNT/{exit}' src/main/fc/rc_adjustments.h
+```c
+#define ADJUSTMENT_FUNCTION_CONFIG_INDEX_OFFSET 1
+defaultAdjustmentConfigs[adjustmentRange->adjustmentConfig - ADJUSTMENT_FUNCTION_CONFIG_INDEX_OFFSET]
 ```
+
+So `ADJUSTMENT_OSD_PROFILE`, enum value 28, is CLI value **29**. Writing the enum value
+straight in binds the switch to `ADJUSTMENT_YAW_F` — a *step* adjustment that increments
+`f_yaw` continuously while the switch is in range. See
+[the OSD page](/reference/osd-layout/#switching-profiles-from-a-switch) for the derivation
+script and the incident this caused.
 {{< /callout >}}
 
 ### Modes versus adjustments
@@ -88,8 +92,10 @@ Two different systems, easy to conflate:
 - **Modes** (`aux`) turn a boolean on or off — armed, angle, beeper. Identified by
   `permanentId` from `msp_box.c`.
 - **Adjustments** (`adjrange`) change a *value* — a PID gain, a profile index. Identified by
-  enum index from `rc_adjustments.h`. `ADJUSTMENT_MODE_SELECT` functions map switch positions
-  onto discrete values; `ADJUSTMENT_MODE_STEP` ones increment.
+  position in `defaultAdjustmentConfigs[]` **plus one**, not by the enum.
+  `ADJUSTMENT_MODE_SELECT` functions map switch positions onto discrete values;
+  `ADJUSTMENT_MODE_STEP` ones increment continuously, which is why a mistargeted step
+  function quietly rewrites a tuning value rather than just doing nothing visible.
 
 If something you want isn't in the mode list, check the adjustment list before concluding it
 can't be done from a switch. OSD profile switching exists only as an adjustment.

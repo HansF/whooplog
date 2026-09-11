@@ -1,7 +1,7 @@
 ---
 title: Driving Betaflight from Claude Code via MCP
 description: Wiring an MCP server to the flight controller, and where it breaks on alpha firmware.
-lead: Read-only access works well. Most MSP binary reads do not work at all on this firmware.
+lead: Read-only access works well, but the server's MSP reads time out — the firmware is not at fault.
 weight: 4
 toc: true
 ---
@@ -68,12 +68,12 @@ On Betaflight **2026.6.0-alpha** (MSP API 1.48), nearly every MSP binary read ti
 through this server, while the CLI text interface works perfectly.
 
 {{< callout type="info" >}}
-**Corrected.** This page previously described the timeouts as a firmware-level MSP failure.
-That was wrong. The Betaflight TX Lua scripts talk to the same flight controller using MSP
-tunnelled over CRSF telemetry, and the [CMS menu renders correctly](/docs/tx-lua-scripts/) —
-which it cannot do without working MSP request/response. **The firmware's MSP implementation
-is fine.** The fault is confined to the USB path, and most likely to this server's MSP
-handling rather than the board.
+**Corrected twice.** This page originally described the timeouts as a firmware-level MSP
+failure. That was wrong: the Betaflight TX Lua scripts reach the same flight controller over
+MSP-in-CRSF and the [CMS menu renders](/docs/tx-lua-scripts/), which is impossible without
+working request/response. It was then narrowed to "something in the USB path". That was also
+too cautious — a hand-written USB MSP client works fine, including `MSP_STATUS`. **The fault
+is this server's MSP implementation, nothing else.** See below.
 {{< /callout >}}
 
 | Call | MSP code | Result |
@@ -87,8 +87,8 @@ handling rather than the board.
 | `MSP_STATUS_EX` | 150 | times out |
 
 The failure is consistent and survives reconnection, replugging and a fresh boot, so it is not
-a transient connection fault. Identity-type calls answering while data calls do not suggests
-the server and the firmware disagree about payload format for the affected messages.
+a transient connection fault. Identity-type calls answer while data calls do not, which points
+at the server and the firmware disagreeing about payload format for the affected messages.
 
 {{< callout type="warning" >}}
 **Operational rule when using this server: treat CLI text as the reliable transport.**
@@ -97,13 +97,26 @@ Board status comes from `status`, not `get_status`; flash usage from `flash_info
 `get_dataflash_summary`; log erasure from `flash_erase`, not `erase_blackbox_logs`.
 {{< /callout >}}
 
-### Still untested
+### Resolved: it's the server, not the transport
 
-Raw MSP over USB from a hand-written client has **not** been tried — the one attempt failed
-before it opened the port, because the board had re-enumerated on a different `ttyACM` node.
-Until that test runs, the boundary is: MSP over CRSF works, MSP over USB *via this server*
-does not. Whether a correct USB MSP client would succeed is unknown, and it is the experiment
-that would isolate the server from the transport.
+Raw MSP over USB from a hand-written client **works**, including the exact message that times
+out through this server:
+
+```text
+MSP_API_VERSION : OK 000130
+MSP_STATUS      : OK, 27 bytes     # code 101 — times out via the MCP server
+MSP_RC          : OK, 16 channels
+```
+
+A ~40-line client is enough (`betamcp/tools/bf_msp.py`). MSP v1 framing is
+`$M<` + length + code + payload + checksum, where the checksum is the XOR of length, code and
+payload; responses arrive as `$M>` with the same shape.
+
+So the boundary is now definite: **the firmware is fine, USB is fine, and MSP v1 over USB is
+fine.** The timeouts are specific to this server's MSP implementation. Reading live RC channel
+values turned out to be essential for debugging
+[OSD profile switching](/reference/osd-layout/#switching-profiles-from-a-switch), and no CLI
+command exposes them — so a working MSP client is worth having regardless.
 
 ## Consequences for CLI-first working
 
@@ -115,3 +128,21 @@ because every read now enters CLI mode. The discipline that follows:
   while connected, and clears on reboot.
 - A tool that wraps CLI access may itself get confused by a board already in CLI. If
   commands start failing with a stale `#` in the buffer, replug rather than retrying.
+
+{{< callout type="error" >}}
+**Being in CLI disables RC adjustments**, so a CLI-first workflow cannot observe them:
+
+```c
+if (!cliMode && !(IS_RC_MODE_ACTIVE(BOXPARALYZE) && !ARMING_FLAG(ARMED))) {
+    processRcAdjustments(currentControlRateProfile);
+}
+```
+
+Anything driven by an `adjrange` — [OSD profiles](/reference/osd-layout/), rate profiles, PID
+adjustments — freezes the moment you connect. Testing one by polling over the CLI therefore
+reports "it isn't working" no matter how correct the configuration is, because connecting is
+what stopped it.
+
+Test them by leaving CLI (`exit noreboot`), letting the switch act, and only then reading the
+result back — or read live state over MSP, which does not have this problem.
+{{< /callout >}}

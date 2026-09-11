@@ -68,7 +68,7 @@ There is **no RC mode box for OSD profiles** — `msp_box.c` has only `OSD DISAB
 (permanentId 19). Profile selection is an *adjustment*, not a mode:
 
 ```bash
-adjrange 0 0 2 900 2100 28 2 0 0
+adjrange 0 0 2 900 2100 29 2 0 0
 ```
 
 Fields are `<index> <unused> <range channel> <start> <end> <function> <select channel> <center> <scale>`.
@@ -92,15 +92,36 @@ const uint8_t position = (constrain(rcData[ch], 900, 2099) - 900) / rangeWidth;
 which lines up with a standard 3-way switch's ~1000/1500/2000 output.
 
 {{< callout type="error" >}}
-**Resolve the adjustment function number from the firmware, not from memory.**
-`ADJUSTMENT_OSD_PROFILE` is **28**; 29 is `LED_PROFILE` and 30 is `LED_DIMMER`. Writing the
-wrong number binds the switch to a different adjustment entirely, with no error — the same
-class of trap as [aux `boxId` values](/reference/aux-modes/). Count the enum:
+**The CLI function number is the enum value plus one, and getting it wrong is destructive.**
+
+`ADJUSTMENT_OSD_PROFILE` is `28` in `adjustmentFunction_e` — but the CLI value is **29**,
+because the stored number indexes a *different* array with an offset:
+
+```c
+#define ADJUSTMENT_FUNCTION_CONFIG_INDEX_OFFSET 1
+defaultAdjustmentConfigs[adjustmentRange->adjustmentConfig - ADJUSTMENT_FUNCTION_CONFIG_INDEX_OFFSET]
+```
+
+Reading `28` off the enum and writing it into `adjrange` binds the switch to
+`ADJUSTMENT_YAW_F` instead. That is a **step** adjustment: it does not select a value, it
+*increments* one, every pass, for as long as the switch sits in range. Doing this drove
+`f_yaw` from its default of 120 to 663 before it was noticed — silently, with no error, and
+it was only caught because two reads seconds apart disagreed.
+
+Derive it from the array that the firmware actually indexes, not the enum:
 
 ```bash
-awk '/ADJUSTMENT_NONE = 0,/{f=1} f&&/ADJUSTMENT_[A-Z0-9_]+,/{gsub(/[ ,]/,"");print n": "$0; n++} \
-  /ADJUSTMENT_FUNCTION_COUNT/{exit}' src/main/fc/rc_adjustments.h
+python3 - <<'PY'
+import re
+src = open('src/main/fc/rc_adjustments.c').read()
+body = re.search(r'defaultAdjustmentConfigs\[.*?\]\s*=\s*\{(.*?)\n\};', src, re.S).group(1)
+for i, f in enumerate(re.findall(r'\.adjustmentFunction\s*=\s*(ADJUSTMENT_[A-Z0-9_]+)', body)):
+    print(f"CLI value {i+1:>3}  {f}")
+PY
 ```
+
+Then sanity-check the result against something you can observe. Step-mode functions are the
+dangerous ones; select-mode functions merely set a value and are harmless if mistargeted.
 {{< /callout >}}
 
 Profile support must be compiled in — check with `get osd_profile`, which should report a
