@@ -112,6 +112,9 @@ A tilt lock would make the feature impossible.
 It is unrelated to `angle_limit`, which is the maximum tilt in angle mode. The names are
 similar and the settings have nothing to do with each other.
 
+See [Crashflip](/reference/crashflip/) for the mode's own settings — in particular
+`crashflip_rate`, which is an auto-stop rather than a speed and ships disabled.
+
 ## The BLACKBOX slot is load-bearing
 
 Slot 6 exists so the [live blackbox log number](/reference/osd-layout/#blackbox-log-number-on-screen)
