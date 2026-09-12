@@ -6,7 +6,7 @@ date: {{ .Date }}
 weight: 10
 toc: true
 tags: []
-craft: ""
+craft: []
 firmware: ""
 duration: ""
 log_file: ""

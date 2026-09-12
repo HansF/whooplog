@@ -4,6 +4,7 @@ description: A minimal OSD built around trustworthy battery information.
 lead: Six elements, and the reason the low-voltage warning was previously useless.
 weight: 5
 toc: true
+craft: ["Crafty", "Air65"]
 ---
 
 The design brief was narrow: reliable battery information, a minimal screen, and the flight
@@ -254,4 +255,15 @@ Use an aux channel that **actually exists**. An unused high channel may read out
 Because this condition now exists, restoring an older config dump that lacks the `aux 6` line
 would leave `BLACKBOX` assigned-but-narrow or unassigned in a way that changes logging
 behaviour. If logging ever stops unexpectedly, check the aux map first.
+{{< /callout >}}
+
+## On the Air65
+
+The element positions and both bitmasks were copied verbatim to the
+[Air65](/reference/build-air65/).
+
+{{< callout type="warning" >}}
+`vcd_video_system` and `osd_displayport_device` are **board settings and must not travel with
+a layout**. Copying them across blanked the Air65's screen until they were set back to
+`NTSC` and `MAX7456`. See [Gyro Substitutions and Firmware](/reference/betafpv-gyro-firmware/).
 {{< /callout >}}

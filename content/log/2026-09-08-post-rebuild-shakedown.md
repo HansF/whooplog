@@ -6,7 +6,7 @@ date: 2026-09-08
 weight: 10
 toc: true
 tags: ["hardware-check", "rebuild"]
-craft: "BETAFPV G473 V2 — 1S"
+craft: ["Crafty"]
 firmware: "Betaflight 2026.6.0-alpha"
 duration: "30.6 s"
 log_file: "btfl_006.bbl"

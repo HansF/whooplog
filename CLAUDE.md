@@ -106,6 +106,34 @@ repo.
 - Use callouts heavily: `warning` for traps, `error` for open issues, `info` for scope
   caveats. The site's value is largely in the gotchas.
 
+## Two craft, one site
+
+Since September 2026 the site covers **two airframes**, so every content page declares which
+one it applies to:
+
+```yaml
+craft: ["Crafty", "Air65"]
+```
+
+`craft` is a Hugo taxonomy registered in `hugo.toml` alongside `tag`, so term pages generate
+themselves at `/craft/crafty/` and `/craft/air65/`. Adding a third drone needs no
+configuration, only frontmatter.
+
+The split that matters:
+
+- **Pilot settings** — switch map, rates, throttle curve, crashflip, OSD layout — are shared,
+  and those pages carry both craft.
+- **Craft settings** — PIDs, filters, `motor_idle`, `align_board_yaw`, `acc_calibration`,
+  VTX frequency, and the two OSD **driver** variables — belong to one airframe and must
+  never be copied between them.
+
+Both boards report target `BETAFPVG473_V2`, so the board name does not identify a craft. Use
+the MCU ID, or the gyro. Name a craft exactly as Betaflight reports `craft_name`, or the
+taxonomy splits it in two.
+
+Where a shared page has a per-craft exception, add a short `## On the Air65` section rather
+than forking the page.
+
 ## Scope discipline
 
 Everything documented is specific to one airframe on alpha firmware. Don't generalise

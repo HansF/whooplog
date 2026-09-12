@@ -19,6 +19,7 @@ enableGitInfo = true
 
 [taxonomies]
   tag = 'tags'
+  craft = 'craft'
 
 [outputs]
   home = ["HTML", "RSS"]
@@ -47,6 +48,12 @@ enableGitInfo = true
   name = "Docs"
   pageRef = "/docs"
   weight = 4
+
+[[menus.main]]
+  identifier = "craft"
+  name = "Craft"
+  pageRef = "/craft"
+  weight = 5
 
 [[menus.main]]
   identifier = "github"

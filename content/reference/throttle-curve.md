@@ -4,6 +4,7 @@ description: Throttle limit, midpoint, expo and motor idle as saved.
 lead: A capped and softened throttle curve for a 1S whoop.
 weight: 3
 toc: true
+craft: ["Crafty", "Air65"]
 ---
 
 ## Saved values
@@ -43,3 +44,9 @@ This build does not use dynamic idle (`dyn_idle_min_rpm = 0`). Dynamic idle hold
 requires bidirectional DSHOT and a correct `motor_poles` value. Worth revisiting if
 propwash ever becomes the presenting symptom.
 {{< /callout >}}
+
+## On the Air65
+
+The throttle curve, limit and expo are identical on the
+[Air65](/reference/build-air65/). **Motor idle is not:** it runs `motor_idle = 550` against
+400 here, which is a factory value for its own motors and was left alone.

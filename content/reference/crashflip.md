@@ -4,6 +4,7 @@ description: Righting an inverted quad, and why crashflip_rate is not a speed.
 lead: The setting that makes it stop by itself is off by default.
 weight: 8
 toc: true
+craft: ["Crafty", "Air65"]
 ---
 
 Crashflip — turtle mode — reverses motor direction so an inverted quad can roll itself

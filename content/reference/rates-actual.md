@@ -4,6 +4,7 @@ description: Centre sensitivity, max rate and expo per axis, with the CLI variab
 lead: The saved rate profile, and the quantization trap that changes what you type.
 weight: 2
 toc: true
+craft: ["Crafty", "Air65"]
 ---
 
 Rate system is `rates_type = ACTUAL`, on rate profile 0.
@@ -54,3 +55,9 @@ get roll_expo
 Each returns the current value, the allowed range and the default, and names the rate
 profile it belongs to. Changes made with `set` live in RAM only — they are not persisted
 until `save`, which also reboots the board.
+
+## On the Air65
+
+Identical on the [Air65](/reference/build-air65/). It shipped on `rates_type = BETAFLIGHT`
+with a 110/74/0.30 curve and was converted; the confirmation is that `rates_type` no longer
+appears in `diff` at all, because ACTUAL is the firmware default.

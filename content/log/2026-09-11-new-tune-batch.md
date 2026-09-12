@@ -6,7 +6,7 @@ date: 2026-09-11
 weight: 8
 toc: true
 tags: ["battery", "tune-comparison", "batch"]
-craft: "BETAFPV G473 V2 — 1S"
+craft: ["Crafty"]
 firmware: "Betaflight 2026.6.0-alpha"
 duration: "~7 min armed across 21 flights"
 log_file: "btfl_001.bbl … btfl_021.bbl"

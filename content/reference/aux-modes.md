@@ -4,6 +4,7 @@ description: The switch map, and how to read raw aux output correctly.
 lead: Resolving a boxId is the step everyone gets wrong.
 weight: 6
 toc: true
+craft: ["Crafty", "Air65"]
 ---
 
 ## Current switch map
@@ -124,3 +125,10 @@ active so behaviour matches an unassigned setup.
 
 Narrowing or removing that line silently changes when logging happens. If blackbox data ever
 goes missing, check here first.
+
+## On the Air65
+
+The [Air65](/reference/build-air65/) runs this switch map slot for slot, including the
+cleared slot 4. It shipped with **ARM and BEEPER on each other's switches**, which is the
+first thing to check on any new craft — see the
+[setup log](/log/2026-09-12-air65-setup/).

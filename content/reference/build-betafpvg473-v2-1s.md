@@ -4,6 +4,7 @@ description: Board, MCU, sensors, storage and firmware for the airframe document
 lead: The hardware every other page on this site refers to.
 weight: 1
 toc: true
+craft: ["Crafty"]
 ---
 
 {{< badge content="Betaflight 2026.6.0-alpha" >}}

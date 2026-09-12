@@ -4,6 +4,7 @@ description: Paste-to-reproduce set lines for the rate profile and throttle curv
 lead: The exact commands to restore this configuration after a wipe.
 weight: 4
 toc: true
+craft: ["Crafty", "Air65"]
 ---
 
 These are **this build's** values, not recommendations. They exist so the configuration can
